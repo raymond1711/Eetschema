@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eetschema">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Mijn eetschema</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--accent:#2563eb;--green:#15803d;--border:#e5e7eb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.app{max-width:760px;margin:auto;padding:18px 14px calc(40px + env(safe-area-inset-bottom))}
+.hero{background:#111827;color:#fff;border-radius:20px;padding:22px;margin-bottom:14px}
+.hero h1{margin:0 0 6px;font-size:28px} .hero p{margin:0;color:#d1d5db}
+.btn{width:100%;border:0;border-radius:16px;padding:17px;background:var(--accent);color:#fff;font-size:18px;font-weight:800;margin:4px 0 14px}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat,.card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:15px}
+.stat .label{font-size:13px;color:var(--muted)} .value{font-size:24px;font-weight:800;margin-top:3px}
+.goal{font-size:12px;color:var(--green);margin-top:4px}
+.card{margin:10px 0} .head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.head h2{font-size:18px;margin:0} .reroll{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:8px 10px;font-weight:700}
+.name{font-weight:800;font-size:17px;margin-top:12px} .desc{color:var(--muted);margin-top:5px;line-height:1.4} .mac{font-weight:700;font-size:14px;margin-top:8px}
+.note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hero"><h1>Mijn eetschema</h1><p>Random dagmenu rond 1800 kcal. Werkt offline na installatie.</p></div>
+<button class="btn" onclick="kiesMijnDag()">🎲 Kies mijn dag</button>
+<div class="summary">
+  <div class="stat"><div class="label">Calorieën</div><div class="value" id="kcal">—</div><div class="goal">Doel 1750–1850</div></div>
+  <div class="stat"><div class="label">Eiwit</div><div class="value" id="eiwit">—</div><div class="goal">Doel ≥115 g</div></div>
+</div>
+<div id="maaltijden"></div>
+<div class="note">Waarden zijn schattingen en kunnen per merk of bereiding afwijken.</div>
+</div>
+<script>
+const DATA={"Ontbijt": [{"naam": "2 volkoren bolletjes met ham + 30+ kaas", "omschrijving": "2 bolletjes, 2 plakken ham, 2 plakken 30+ kaas", "kcal": 390, "eiwit": 25}, {"naam": "2 volkoren bolletjes met 2 eieren + ham", "omschrijving": "2 bolletjes, 2 eieren, 2 plakken ham", "kcal": 400, "eiwit": 27}, {"naam": "2 volkoren bolletjes met ei + ham + kaas", "omschrijving": "2 bolletjes, 2 eieren, 1 plak ham, 1 plak 30+ kaas", "kcal": 430, "eiwit": 31}, {"naam": "2 volkoren bolletjes met omelet", "omschrijving": "2 bolletjes, 2 eieren, paprika/ui", "kcal": 380, "eiwit": 22}, {"naam": "2 volkoren bolletjes met 3 eieren", "omschrijving": "2 bolletjes, 3 eieren", "kcal": 440, "eiwit": 25}, {"naam": "2 volkoren bolletjes met ham + kaas + melk", "omschrijving": "2 bolletjes, ham, kaas, 200 ml halfvolle melk", "kcal": 500, "eiwit": 32}, {"naam": "2 volkoren bolletjes met ham + kaas + appel", "omschrijving": "2 bolletjes, ham, kaas, 1 appel", "kcal": 470, "eiwit": 26}, {"naam": "2 volkoren bolletjes met ei + ham + appel", "omschrijving": "2 bolletjes, 2 eieren, ham, 1 appel", "kcal": 480, "eiwit": 28}], "Lunch": [{"naam": "2 volkoren bolletjes ham + kaas", "omschrijving": "2 bolletjes, 3 plakken ham, 2 plakken 30+ kaas", "kcal": 410, "eiwit": 29}, {"naam": "2 volkoren bolletjes ham + kaas + ei", "omschrijving": "2 bolletjes, ham, kaas, 1 ei", "kcal": 420, "eiwit": 28}, {"naam": "2 volkoren bolletjes met omelet + ham", "omschrijving": "2 bolletjes, 2 eieren, 2 plakken ham", "kcal": 400, "eiwit": 27}, {"naam": "2 volkoren bolletjes met hamburger", "omschrijving": "2 bolletjes, 1 kleine magere hamburger, tomaat/ui", "kcal": 430, "eiwit": 30}, {"naam": "2 volkoren bolletjes met warme gehaktbal", "omschrijving": "2 bolletjes, 1 gehaktbal, mosterd", "kcal": 440, "eiwit": 27}, {"naam": "2 volkoren bolletjes met shoarma", "omschrijving": "2 bolletjes, 100 g shoarma, sla", "kcal": 470, "eiwit": 29}, {"naam": "2 volkoren bolletjes met schnitzel", "omschrijving": "2 bolletjes, 1 kleine schnitzel, sla", "kcal": 500, "eiwit": 27}, {"naam": "2 volkoren bolletjes ham + kaas + fruit", "omschrijving": "2 bolletjes, ham, kaas, 1 stuk fruit", "kcal": 490, "eiwit": 29}], "Tussendoor": [{"naam": "Appel + halfvolle melk", "omschrijving": "1 appel, 250 ml melk", "kcal": 200, "eiwit": 9}, {"naam": "Banaan + halfvolle melk", "omschrijving": "1 banaan, 250 ml melk", "kcal": 240, "eiwit": 9}, {"naam": "2 gekookte eieren", "omschrijving": "2 eieren", "kcal": 155, "eiwit": 13}, {"naam": "2 volkoren crackers + ham", "omschrijving": "2 crackers, 2 plakken ham", "kcal": 140, "eiwit": 10}, {"naam": "1 ei + 2 plakken ham", "omschrijving": "1 ei, 2 plakken ham", "kcal": 140, "eiwit": 13}, {"naam": "2 volkoren crackers + 2 eieren", "omschrijving": "2 crackers, 2 eieren", "kcal": 225, "eiwit": 16}, {"naam": "2 volkoren crackers + ham + kaas", "omschrijving": "2 crackers, ham, 1 plak kaas", "kcal": 200, "eiwit": 15}, {"naam": "3 plakjes ham + stuk fruit", "omschrijving": "3 plakken ham, 1 stuk fruit", "kcal": 160, "eiwit": 12}], "Avondeten": [{"naam": "Gehaktbal + aardappelen + sperziebonen", "omschrijving": "175 g mager gehakt, 250 g aardappelen, 300 g sperziebonen, beetje jus", "kcal": 650, "eiwit": 43}, {"naam": "Biefstuk + aardappelen + broccoli", "omschrijving": "180 g biefstuk, 250 g aardappelen, 300 g broccoli", "kcal": 600, "eiwit": 52}, {"naam": "Varkenshaas + aardappelen + wortel", "omschrijving": "180 g varkenshaas, 250 g aardappelen, 300 g wortel", "kcal": 580, "eiwit": 48}, {"naam": "Schnitzel + aardappelen + groente", "omschrijving": "150 g schnitzel, 250 g aardappelen, 300 g groente", "kcal": 650, "eiwit": 38}, {"naam": "Spaghetti bolognese", "omschrijving": "80 g droge pasta, 175 g mager gehakt, tomatensaus, groente", "kcal": 700, "eiwit": 48}, {"naam": "Pasta met gehakt en kaas", "omschrijving": "75 g droge pasta, 175 g mager gehakt, tomatensaus, 20 g kaas", "kcal": 720, "eiwit": 51}, {"naam": "Kip + rijst + wokgroenten", "omschrijving": "180 g kip, 250 g gekookte rijst, 300 g wokgroenten, saus", "kcal": 650, "eiwit": 55}, {"naam": "Varkensreepjes + rijst + wokgroenten", "omschrijving": "180 g varkensreepjes, 250 g gekookte rijst, 300 g groenten", "kcal": 680, "eiwit": 48}, {"naam": "Shoarma + rijst + groenten", "omschrijving": "180 g shoarma, 250 g gekookte rijst, 250 g groenten", "kcal": 720, "eiwit": 43}, {"naam": "Shoarma + pita + salade", "omschrijving": "180 g shoarma, 2 kleine pita's, veel salade", "kcal": 700, "eiwit": 42}, {"naam": "Chili con carne", "omschrijving": "175 g mager gehakt, kidneybonen, groente, 200 g rijst", "kcal": 700, "eiwit": 48}, {"naam": "Nasi met kip", "omschrijving": "175 g kip, 250 g gekookte rijst, nasi-groenten, 1 ei", "kcal": 700, "eiwit": 55}, {"naam": "Aardappelen + slavinken + groenten", "omschrijving": "2 slavinken, 250 g aardappelen, 300 g groente", "kcal": 750, "eiwit": 40}, {"naam": "Aardappelen + rookworst + boerenkool", "omschrijving": "100 g rookworst, 250 g aardappelen, 300 g boerenkool", "kcal": 700, "eiwit": 30}, {"naam": "Speklap + aardappelen + sperziebonen", "omschrijving": "120 g speklap, 250 g aardappelen, 300 g sperziebonen", "kcal": 750, "eiwit": 32}, {"naam": "Biefstuk + rijst + wokgroenten", "omschrijving": "180 g biefstuk, 250 g gekookte rijst, 300 g wokgroenten", "kcal": 650, "eiwit": 52}, {"naam": "Kip + pasta + tomatensaus", "omschrijving": "180 g kip, 75 g droge pasta, tomatensaus, groenten", "kcal": 680, "eiwit": 58}]};
+const MOMENTEN=["Ontbijt","Lunch","Tussendoor","Avondeten"];
+let gekozen={};
+
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function total(sel){let kcal=0,eiwit=0;for(const m of MOMENTEN)if(sel[m]){kcal+=sel[m].kcal;eiwit+=sel[m].eiwit}return{kcal,eiwit}}
+function score(sel){const t=total(sel);return Math.abs(1800-t.kcal)+(t.eiwit<115?(115-t.eiwit)*12:0)}
+
+function kiesMijnDag(){
+ let best=null,bestScore=Infinity;
+ for(let i=0;i<5000;i++){
+   const c={Ontbijt:rnd(DATA.Ontbijt),Lunch:rnd(DATA.Lunch),Tussendoor:rnd(DATA.Tussendoor),Avondeten:rnd(DATA.Avondeten)};
+   const t=total(c); let s=score(c);
+   if(t.kcal>=1750&&t.kcal<=1850&&t.eiwit>=115)s-=1000;
+   if(s<bestScore){bestScore=s;best=c}
+ }
+ gekozen=best; save(); render();
+}
+function opnieuw(m){
+ if(!gekozen[m])return kiesMijnDag();
+ let n=gekozen[m],tries=0;
+ while(n===gekozen[m]&&tries++<30)n=rnd(DATA[m]);
+ gekozen[m]=n; save(); render();
+}
+function save(){localStorage.setItem("eetschema",JSON.stringify(gekozen))}
+function render(){
+ const box=document.getElementById("maaltijden"); box.innerHTML="";
+ if(!Object.keys(gekozen).length){
+   box.innerHTML='<div class="card"><strong>Druk op “Kies mijn dag”.</strong></div>'; return;
+ }
+ const t=total(gekozen); kcal.textContent=t.kcal+" kcal"; eiwit.textContent=t.eiwit+" g";
+ for(const m of MOMENTEN){
+   const x=gekozen[m]; const d=document.createElement("div"); d.className="card";
+   d.innerHTML=`<div class="head"><h2>${m}</h2><button class="reroll" onclick="opnieuw('${m}')">↻ Andere</button></div><div class="name">${x.naam}</div><div class="desc">${x.omschrijving}</div><div class="mac">${x.kcal} kcal · ${x.eiwit} g eiwit</div>`;
+   box.appendChild(d);
+ }
+}
+try{const s=localStorage.getItem("eetschema");if(s)gekozen=JSON.parse(s)}catch(e){}
+render();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
